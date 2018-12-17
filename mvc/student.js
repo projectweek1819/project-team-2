@@ -215,7 +215,7 @@ function circle(){
 function circle2(){
 
     function render(state){
-        return [{type: "circle", center: {x: 100, y: 100}, radius: 10, color: "red"}];
+        return [{type: "circle", center: state.position, radius: 10, color: "red"}];
     }
 
     function moveTo(state, position){
@@ -223,11 +223,99 @@ function circle2(){
     }
 
     function onMouseDown(state, args){
-        return model.moveTo(state, state.position);
+        return model.moveTo(state, args.position);
     }
 
     const controller = { onMouseDown };
     const model = { moveTo };
+    const view = { render };
+    return { view, model, controller };
+}
+
+function circle3(){
+
+    function render(state){
+        return [{type: "circle", center: state.position, radius: 10, color: "red"}];
+    }
+
+    function moveTo(state, position){
+        return {position: position};
+    }
+
+    function onMouseMove(state, args){
+        return model.moveTo(state, args.position);
+    }
+
+    const controller = { onMouseMove };
+    const model = { moveTo };
+    const view = { render };
+    return { view, model, controller };
+}
+
+function drawing(){
+    function render(state){
+        let result = [];
+        for (let dot of state.dots){
+            result.push({type: "circle", center: dot, radius: 2, color: "green"});
+        }
+
+        if (state.addMode === false){
+            result.push({type: "circle", center: state.position, radius: 5, color: "red"});
+        }
+        else {
+            result.push({type: "circle", center: state.position, radius: 2, color: "red"});
+        }
+        return result;
+    }
+
+    function moveTo(state, position){
+        if (state.addMode){
+            let dots = state.dots.slice(0);
+            dots.push({x: position.x, y: position.y});
+            return {position: position, dots: dots, addMode: state.addMode};
+        }
+        return {position: position, dots: state.dots, addMode: state.addMode};
+    }
+
+    function setAddMode(state, addMode){
+        return {position: state.position, dots: state.dots, addMode: addMode};
+    }
+
+
+    function onMouseMove(state, args){
+        return model.moveTo(state, args.position);
+    }
+
+    function onMouseDown(state, args){
+        return setAddMode(state, true);
+    }
+
+    function onMouseUp(state, args){
+        return setAddMode(state, false);
+    }
+
+    const controller = { onMouseMove, onMouseDown, onMouseUp };
+    const model = { moveTo, setAddMode };
+    const view = { render };
+    return { view, model, controller };
+}
+
+function random(){
+    function render(state) {
+        return [{type: "text", position: {x: 50, y: 50}, string: state.dieValue}];
+    }
+
+    function throwDie(state){
+        let rng = (4578 * state.rng ** 2 - 976161 * state.rng + 6156489) % 79729693;
+        return {rng: rng, dieValue: rng % 6 + 1};
+    }
+
+    function onKeyDown(state, args){
+        return throwDie(state);
+    }
+
+    const controller = { onKeyDown };
+    const model = { throwDie };
     const view = { render };
     return { view, model, controller };
 }
